@@ -1,0 +1,85 @@
+# ==============================================================================
+# Azure DevOps 原生版 AI SDLC 智慧協同 Pipeline
+# 支援三種使用情境：
+# 1. 定時巡檢 (Scheduled Polling)：每 15 分鐘主動掃描看板需求並推進 (無 Webhook 資安限制下的首選)。
+# 2. 手動隨選 (Manual Run)：團隊成員點擊「Run pipeline」，自選 PBI_ID 與 ACTION 參數執行。
+# 3. 智慧推進 (Auto Dispatch)：單鍵 auto 或批次 poll 智慧推進各階段。
+# ==============================================================================
+
+parameters:
+  - name: ACTION
+    displayName: '⚙️ 欲執行的 SDLC 動作 (Action)'
+    type: string
+    default: 'poll'
+    values:
+      - 'poll'          # 🔄 巡檢模式：掃描看板所有活躍需求並自動推進 (無須指定 PBI ID)
+      - 'auto'          # 🚀 智慧模式：推斷單一需求並推進至下一階段
+      - 'intend'        # 階段 1：提問邊界問題 (Intend)
+      - 'confirm-intend'# 階段 1：收斂真人回覆並產生 AC
+      - 'design'        # 階段 2：產出架構設計規格至 Wiki (Design)
+      - 'implement'     # 階段 3：寫代碼、跑單元測試並建立 PR (Implement)
+      - 'status'        # 查詢目前階段進度
+
+  - name: PBI_ID
+    displayName: '📌 PBI 工作項目編號 (Work Item ID，若 ACTION 為 poll 可忽略)'
+    type: number
+    default: 1
+
+trigger: none # 不由 git push 觸發，專門作為隨選 / 排程巡檢作業
+
+schedules:
+  - cron: '*/10 * * * *'
+    displayName: '⏰ 每 10 分鐘定時巡邏活躍需求 (AI SDLC Polling Engine)'
+    branches:
+      include:
+        - feature/sdlc
+        - main
+    always: true
+
+variables:
+  - group: SDLC-Secrets # 綁定 Library 變數群組以注入 ADO_PAT
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+jobs:
+  - job: ExecuteAISDLC
+    displayName: '🚀 執行 AI SDLC 協同調度'
+    steps:
+      - checkout: self
+        persistCredentials: false
+
+      - task: NodeTool@0
+        displayName: '安裝 Node.js 20'
+        inputs:
+          versionSpec: '20.x'
+
+      - task: JavaToolInstaller@0
+        displayName: '安裝 Java 17 (Eclipse Temurin)'
+        inputs:
+          versionSpec: '17'
+          jdkArchitectureOption: 'x64'
+          jdkSourceOption: 'PreInstalled'
+
+      - script: |
+          git config --global user.email "ai-sdlc-bot@devops.internal"
+          git config --global user.name "AI SDLC Bot"
+        displayName: '設定 Git 機器人身份'
+
+      - script: |
+          echo "=========================================="
+          echo "調度動作模式 : ${{ parameters.ACTION }}"
+          if [ "${{ parameters.ACTION }}" = "poll" ]; then
+            echo "模式說明     : 批次巡邏看板所有 active 需求"
+            echo "=========================================="
+            node scripts/sdlc.js poll
+          else
+            echo "目標 PBI 編號: ${{ parameters.PBI_ID }}"
+            echo "=========================================="
+            node scripts/sdlc.js ${{ parameters.ACTION }} ${{ parameters.PBI_ID }}
+          fi
+        displayName: '執行 AI SDLC 引擎 (scripts/sdlc.js)'
+        env:
+          ADO_PAT: $(ADO_PAT)
+          ADO_ORG_URL: $(System.CollectionUri)
+          ADO_PROJECT: $(System.TeamProject)

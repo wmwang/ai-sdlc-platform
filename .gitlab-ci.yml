@@ -1,0 +1,30 @@
+# ==============================================================================
+# GitLab CI AI SDLC 定時巡檢調度配置 (.gitlab-ci.yml)
+# 支援 GitLab CI/CD Pipeline Schedules 每 10 分鐘自動執行看板巡邏
+# ==============================================================================
+
+default:
+  image: maven:3.9.6-eclipse-temurin-17
+
+variables:
+  # 請於 GitLab 專案 Settings > CI/CD > Variables 設定保護變數
+  ADO_PAT: $AZURE_DEVOPS_PAT
+  ADO_ORG_URL: "https://dev.azure.com/wmwangf"
+  ADO_PROJECT: "SDLC"
+  ADO_REPO: "SDLC"
+
+stages:
+  - execute-sdlc
+
+ai-sdlc-poller:
+  stage: execute-sdlc
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+  before_script:
+    - apt-get update && apt-get install -y curl git
+    - curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+    - apt-get install -y nodejs
+  script:
+    - echo "啟動 AI SDLC 引擎定時巡檢..."
+    - node scripts/sdlc.js poll

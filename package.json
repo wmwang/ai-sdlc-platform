@@ -1,0 +1,24 @@
+{
+  "name": "ai-sdlc-platform",
+  "version": "1.0.0",
+  "description": "企業級 AI SDLC 自動化調度平台核心引擎 (Enterprise AI Software Delivery Lifecycle Platform)",
+  "main": "scripts/sdlc.js",
+  "bin": {
+    "ai-sdlc": "scripts/sdlc.js"
+  },
+  "scripts": {
+    "poll": "node scripts/sdlc.js poll",
+    "status": "node scripts/sdlc.js status",
+    "create-pbi": "node scripts/sdlc.js create-pbi"
+  },
+  "keywords": [
+    "ai-sdlc",
+    "azure-devops",
+    "spring-boot",
+    "scrum",
+    "automation",
+    "platform-engineering"
+  ],
+  "author": "wmwangf",
+  "license": "ISC"
+}

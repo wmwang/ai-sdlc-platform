@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.0.0",
+  "projectInfo": {
+    "organizationUrl": "https://dev.azure.com/wmwangf",
+    "projectName": "SDLC",
+    "repositoryName": "monorepo",
+    "defaultTargetBranch": "main"
+  },
+  "scrum": {
+    "processTemplate": "Scrum",
+    "workItemType": "Product Backlog Item",
+    "fields": {
+      "title": "System.Title",
+      "description": "System.Description",
+      "acceptanceCriteria": "Microsoft.VSTS.Common.AcceptanceCriteria",
+      "state": "System.State",
+      "tags": "System.Tags"
+    },
+    "tags": {
+      "stage1_waiting": "[1/5]-需求反詰(等回覆)",
+      "stage2_ready": "[2/5]-驗收確立(完成)",
+      "stage3_ready": "[3/5]-架構設計(完成)",
+      "stage3_running": "[3/5]-代碼實作(進行中)",
+      "stage4_review": "[4/5]-代碼實作(待合併)",
+      "stage5_done": "[5/5]-審查結案(Done)"
+    },
+    "states": {
+      "intend": "Approved",
+      "design": "Approved",
+      "implement": "Committed",
+      "done": "Done"
+    }
+  },
+  "techStack": {
+    "name": "Java Spring Boot",
+    "framework": "spring-boot",
+    "buildTool": "maven",
+    "commands": {
+      "test": "mvn test",
+      "compile": "mvn clean compile",
+      "package": "mvn clean package -DskipTests"
+    },
+    "architecturePattern": "Controller -> Service -> Repository -> Entity (JPA)",
+    "testFramework": "JUnit 5 + Mockito"
+  },
+  "wiki": {
+    "wikiIdentifier": "SDLC.wiki",
+    "designFolderPath": "/Designs"
+  },
+  "branchPolicy": {
+    "branchNamingTemplate": "feature/pbi-{id}-{slug}",
+    "commitMessageTemplate": "feat(pbi-{id}): {message}"
+  }
+}
